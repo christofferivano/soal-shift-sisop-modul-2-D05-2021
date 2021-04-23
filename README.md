@@ -271,3 +271,123 @@ Adapun kendala yang dialami selama pengerjaan soal ini adalah sebagi berikut.
 2. Ketika mencoba menggunakan directory listing dan execv mv, untuk memindahkan file hasil extract zip ke folder yang telah dibuat, terdapat beberapa file yang tidak ikut pindah
 3. Program akan berhenti jika terdapat proses yang menghasilkan output
 
+## 3. Program Ranora
+Pada soal ini, kami diminta untuk membuat folder zip setiap 40 detik dan menngunduh gambar tiap 5 detik.
+a.
+Membuat direktori dengan nama sesuai timestamp `[YYYY-mm-DD_HH:MM:ss]` setiap 40 detik. Untuk membuat direktori dengan timestamp yang diinginkan dapat menggunakan\
+```
+time_t tnow;
+time(&tnow);
+struct tm *timenow;
+timenow = localtime(&tnow);
+char timestamp[100];
+strftime(timestamp, 100, "%Y-%m-%d_%X", timenow);
+```
+Untuk mengambil data waktu untuk nama direktorinya. Untuk pembuatan direktorinya dapat menggunakan:\
+```
+char *argv[] = {"mkdir", timestamp, NULL};
+execv ("/bin/mkdir", argv);
+```
+Untuk pembuatan direktorinya setiap 40 detik dapat menggunakan `sleep(40)`.\
+![image](https://user-images.githubusercontent.com/73484021/115853663-9db41e00-a453-11eb-8f89-eee9bcc144c9.png)
+\
+b. download gambar setiap 5 detik dengan format nama timestamp dan berbentuk persegi dengan ukuran (n%1000) + 50 pixel\
+Untuk mengambil data waktu untuk penamaan file gambarnya sama dengan nomor `3a.`.\
+```
+time_t tnow2;
+time(&tnow2);
+struct tm *timenow2;
+timenow2 = localtime(&tnow2);
+char timestamp2[100];
+strftime(timestamp2, 100, "%Y-%m-%d_%X", timenow2);
+```
+Untuk membuat ukuran gambarnya dengan epoch unix dapat seperti berikut :\
+```
+int epoch = (int)tnow2 % 1000 + 50;
+```
+Sesuai dengan rumus yang tertera pada soal. Lalu untuk mendownload gambar dari link `https://picsum.photos/%d` dapat menggunakan :\
+```
+sprintf(link, "https://picsum.photos/%d", epoch);
+cid3 = fork();
+if (cid3 == 0)
+{
+	char *argv[] = {"wget", link, "-0", timestamp}
+	execv ("/bin/wget", argv);
+}
+```
+Lalu, untuk jeda tiap 5 detik dapat menggunakan `sleep(5)`.\
+![image](https://user-images.githubusercontent.com/73484021/115856113-45325000-a456-11eb-8020-080e7b0ebf83.png)
+![image](https://user-images.githubusercontent.com/73484021/115856228-6dba4a00-a456-11eb-9d69-c90be320a958.png)\
+c. Membuat status.txt dengan mengubah isinya dengan caesar cipher. Ubah direktori tersebut menjadi zip dan hapus.\
+Untuk teknik Caesar Cipher dapat menggunakan cara berikut :
+```
+char sukses[] - {"Download Success"};
+for (int i = 0; i < strlen(sukses); i++)
+{
+	if (sukses[i] == ' ') continue;
+	else if (sukses[i] >= 'A' && sukses[i] <= 'Z')
+	{
+		if (sukses[i] > 'U')
+		{
+			sukses[i] = sukses[i] - 21;
+			continue;
+		}
+		sukses[i] = sukses[i] + 5;
+	}
+	else if (sukses[i] >= 'a' && sukses[i] <= 'z')
+	{
+		if (sukses[i] > 'u')
+		{
+			sukses[i] = sukses[i] - 21;
+			continue;
+		}
+		sukses[i] = sukses[i] + 5;
+	}
+}
+```
+Jadi, untuk spasi langsung saja kita `continue;`, tapi untuk huruf `A-Z` dan `a-z` dicek dulu, jika lebih besar dari `U` atau `u` maka dikurang dulu dengan `21` agar jika ditambahkan dengan `5` tidak menjadi huruf kecil atau simbol. Lalu untuk penambahan `status.txt` pada folder dapat menggunakan cara berikut :\
+```
+FILE *file = NULL;
+file = fopen("status.txt", "w");
+fputs(sukses, file);
+fclose(file);
+```
+Untuk membuat folder menjadi zip dan hapus foldernya dapat menggunakan cara berikut :
+```
+chdir(".."); //untuk keluar dari direktori sebelumnya
+char zip_name[100];
+strcpy(zip_name, timestamp); //copy nama folder timestamp ke folder zip_name
+strcat(zip_name, ".zip"); //zip_name ditambahkan .zip
+char *argv[] = {"zip", "-rm", zip_name, timestamp, NULL};
+execv("/bin/zip", argv);
+```
+![image](https://user-images.githubusercontent.com/73484021/115863032-153b7a80-a45f-11eb-93b7-2e69220d66e3.png)
+![image](https://user-images.githubusercontent.com/73484021/115863064-21273c80-a45f-11eb-98ed-1cea3b3c377b.png)
+
+d.e. Membuat program bash untuk menghentikan proses pembuatan folder\
+Untuk argumen `-z` program akan langsung berhenti mendownload gambar dan untuk argumen `-x` program tetap berjalan hingga selesai download 10 gambar untuk folder tersebut lalu berhenti. Untuk programnya adalah seperti berikut :\
+```
+if (argc == 2 && strcmp(argv[1], "-z") == 0)
+{
+	FILE *file = NULL;
+	file = fopen("killer.sh", "w");
+	fprintf(file, "#!/bin/bash\nkill soal3\nrm killer.sh\n");
+	fclose(file);
+}
+else if (argc == 2 && strcmp(argv[1], "-x") == 0)
+{
+	FILE *file = NULL;
+	file = fopen("killer.sh", "w");
+	fprintf(file, "#!/bin/bash\nkill %d\nrm killer.sh\n", getpid());
+	fclose(file);
+}
+```
+Jika argc == 2 `(argc == 1) adalah argumen ./soal3` dan argumennya adalah `-z / -x`, maka akan membuat file killer.sh yang dimana jika kita menjalankan `./soal3 -z` lalu bash `killer.sh` maka proses download akan langsung berhenti dan program langsung menghapus `killer.sh`. Untuk `./soal3 -x` lalu bash `killer.sh` maka program masih melakukan download gambar hingga selesai zip lalu berhenti dan menghapus `killer.sh`.
+![image](https://user-images.githubusercontent.com/73484021/115863939-626c1c00-a460-11eb-94fe-25e32f7c3d5b.png)
+![image](https://user-images.githubusercontent.com/73484021/115864008-7dd72700-a460-11eb-9e46-d481996f70f3.png)
+![image](https://user-images.githubusercontent.com/73484021/115864081-96dfd800-a460-11eb-8be0-b40c1c3bd9bf.png)
+![image](https://user-images.githubusercontent.com/73484021/115864111-a3fcc700-a460-11eb-8b0c-eb3dac57d359.png)
+![image](https://user-images.githubusercontent.com/73484021/115864145-b0811f80-a460-11eb-8534-44f1a4407b66.png)
+\
+Kendala dalam pengerjaan no 3 :\
+-Status.txt selalu terbuat di dalam dan di luar folder. Jadi, saya membuat variabel flag untuk membuat status.txt hanya jika flag = 10.
