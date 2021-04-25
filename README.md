@@ -50,7 +50,7 @@ int main(){
     }
 }
 ```
-Dimana direktori yang digunakan adalah current working directory (`currpath`) dan fungsi `checkfor` digunakan untuk mengecek apakah fork berhasil dilakukan.
+Dimana direktori yang digunakan adalah current working directory (`currpath`) dan fungsi `checkfork` digunakan untuk mengecek apakah fork berhasil dilakukan.
 ```
 void checkfork(pid_t child_id){
     if (child_id < 0) {
