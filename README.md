@@ -271,6 +271,75 @@ Adapun kendala yang dialami selama pengerjaan soal ini adalah sebagi berikut.
 2. Ketika mencoba menggunakan directory listing dan execv mv, untuk memindahkan file hasil extract zip ke folder yang telah dibuat, terdapat beberapa file yang tidak ikut pindah
 3. Program akan berhenti jika terdapat proses yang menghasilkan output
 
+## 2. Pekerjaan Loba di Petshop
+Loba punya pekerjaan di suatu petshop. Di sana, dia diminta merapikan foto-foto peliharaan yang dikirim kepadanya dimana dia kesusahan jika melakukannya secara manualdan meminta bantuan supaya pekerjaannya bisa diselesaikan secara mudah.
+
+a. Extract and Delete
+File yang diserahkan kepada Loba merupakan file Zip yang berisi foto-foto peliharaan yang ada. Dari zip tersebut perlu dikeluarkan isinya ke dalam folder “/home/[user]/modul2/petshop”. Untuk melakukan ini bisa dengan menggunakan command unzip dan menjadikannya sebagai function sehingga tinggal memanggilnya.
+```
+void unzipPets(char *src, char *des){
+    char *argv[] = {"unzip", "-q", src, "-d", des, NULL};
+    if((execv("/usr/bin/unzip", argv)) == -1)
+        exit(EXIT_FAILURE);
+}
+```
+Setelah isi zip di-extract, ternyata di dalamnya berisi juga folder-folder yang tidak dibutuhkan dimana Loba hanya butuh file-file jpg foto-foto peliharannya. Oleh karena itu, habis extract kite perlu hapus folder-folder tersebut dengan cara melakukan directory list dan mengidentifikasi manakah yang merupakan sebuah folder yang kemudian digunakan command rm (hapus) pada folder bersangkutan.
+```
+void delDir(char *name)
+{
+    char *argv[] = {"rm", "-r", name, NULL};
+    execv("/bin/rm", argv);
+}
+
+DIR *dp;
+        struct dirent *ep;
+        
+        dp = opendir(deszipPath);
+
+        if (dp != NULL)
+        {
+        while ((ep = readdir (dp))) {
+            char temp[550];
+            sprintf(temp,"%s/%s", deszipPath, ep->d_name);
+            if ((strcmp(ep->d_name, ".")==0) || (strcmp(ep->d_name, "..")==0))
+                continue;
+            if (is_regular_file(temp) == 0){
+                pid_t poin_a1;
+                poin_a1 = fork();
+                int statusa1;
+                if (poin_a1 < 0)
+                    exit(EXIT_FAILURE);
+                if (poin_a1 == 0)
+                    delDir(temp);
+                
+            }
+        }
+        (void) closedir (dp);
+        } else perror ("Couldn't open the directory");
+```
+Jika sudah dijalankan maka akan menyisakan foto-foto peliharaan yang dibutuhkan Loba untuk pekerjaannya di petshop.
+![Screenshot 2021-04-25 203653](https://user-images.githubusercontent.com/73422724/115995603-18bd3600-a606-11eb-8ea8-7d9a84f22bbb.png)
+
+b. Foto-foto peliharaan masih berantakan dan Loba perlu merapikan foto-foto tersebut dimana ia harus membuat kategori-kategori berdasarkan peliharaan-peliharaan yang ada di dalamnya. Sehingga nanti hasilnya seperti “/petshop/cat” untuk peliharaan kucing atau “/petshop/turtle” untuk peliharaan kura-kura. Apabila selesai dijalankan maka masing-masing foto peliharaan sudah mempunyai folder kategorinya sendiri-sendiri.
+
+c. Setelah folder kategori berhasil dibuat, maka yang perlu dilakukan adalah memindahkan foto sesuai kategori masing-masing lalu merubah nama file sesuai nama peliharaan yang sudah tercantum. Contohnya untuk peliharaan kucing bernama joni akan berakhir pada direktori seperti berikut “/petshop/cat/joni.jpg”.
+
+d. Dalam satu foto rupanya ada yang terdapat lebih dari satu peliharaan, untuk itu, satu foto tersebut harus dimasukkan pada kategorinya masing-masing. Dengan kata lain, satu foto masuk ke 2 kategori berbeda tentunya dengan nama peliharaan masing-masing. Sebagai kasus foto dengan nama file “dog;baro;1_cat;joni;2.jpg” perlu dipindahkan pada kategori cat dengan nama peliharaan joni “/petshop/cat/joni.jpg” dan dipindah ke kategori dog dengan nama baro “/petshop/dog/baro.jpg”.
+
+e. Di setiap folder kategori, Loba perlu membuat sebuah file bernama "keterangan.txt" yang isinya semua nama dan umur peliharaan di dalam kategori tersebut. Dengan format sebagai berikut merupakan isi file "keterangan.txt" tadi.
+`
+nama : joni
+umur  : 3 tahun
+
+nama : miko
+umur  : 2 tahun
+`
+
+Kendala pengerjaan soal nomor 2 :\
+-Masih belum bisa mengimplementasikan interaksi antara file dengan program c atau bagaimana membawa command-command di Linux ke c.
+
+
+
 ## 3. Program Ranora
 Pada soal ini, kami diminta untuk membuat folder zip setiap 40 detik dan menngunduh gambar tiap 5 detik.
 a.
